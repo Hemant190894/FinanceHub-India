@@ -24,7 +24,6 @@ export function SipModeNav({ mode, onModeChange }: SipModeNavProps) {
       {SIP_MODES.map((item) => {
         const active = mode === item;
         const label = t[MODE_LABEL_KEYS[item]] as string;
-        const isSoon = item === "pro-plus";
 
         return (
           <Button
@@ -37,9 +36,6 @@ export function SipModeNav({ mode, onModeChange }: SipModeNavProps) {
             onClick={() => onModeChange(item)}
           >
             {label}
-            {isSoon && !active && (
-              <span className="ml-1.5 text-[10px] font-normal opacity-70">{t.statusSoon}</span>
-            )}
           </Button>
         );
       })}

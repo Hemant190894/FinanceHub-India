@@ -123,12 +123,17 @@ const en: TranslationKeys = {
   sipModeProPlus: "Pro+",
   sipModeNormalDesc: "Fixed monthly SIP — same amount every month.",
   sipModeProDesc: "Step-up SIP — increase your monthly amount every year.",
+  sipModeProPlusDesc: "Step-up SIP plus an extra lump sum at the start of each new year.",
   sipProPlusSoon: "Pro+ is coming soon. Advanced SIP options will appear here.",
   stepUpSip: "Step-up SIP (increase every year)",
   stepUpSipHint: "Your monthly SIP goes up by this % at the start of each new year. Leave empty or 0 for regular SIP.",
   annualStepUp: "Annual step-up (% per year)",
   annualStepUpPlaceholder: "e.g. 10",
   finalMonthlySip: "Last year monthly SIP",
+  annualLumpSum: "Annual lump sum top-up (₹)",
+  annualLumpSumPlaceholder: "e.g. 50000",
+  annualLumpSumHint: "Extra amount invested once at the start of each new year (from year 2).",
+  totalLumpSumInvested: "Total lump sum invested",
 };
 
 const hi: TranslationKeys = {
@@ -254,12 +259,17 @@ const hi: TranslationKeys = {
   sipModeProPlus: "प्रो+",
   sipModeNormalDesc: "फिक्स्ड मासिक एसआईपी — हर महीने एक जैसी राशि।",
   sipModeProDesc: "स्टेप-अप एसआईपी — हर साल मासिक राशि बढ़ाएँ।",
+  sipModeProPlusDesc: "स्टेप-अप एसआईपी + हर नए साल की शुरुआत में अतिरिक्त lump sum।",
   sipProPlusSoon: "प्रो+ जल्द आ रहा है। यहाँ उन्नत एसआईपी विकल्प होंगे।",
   stepUpSip: "स्टेप-अप एसआईपी (हर साल बढ़ोतरी)",
   stepUpSipHint: "हर नए साल की शुरुआत में मासिक एसआईपी इतने % से बढ़ती है। सामान्य एसआईपी के लिए खाली या 0 रखें।",
   annualStepUp: "वार्षिक स्टेप-अप (% प्रति वर्ष)",
   annualStepUpPlaceholder: "जैसे 10",
   finalMonthlySip: "अंतिम वर्ष की मासिक एसआईपी",
+  annualLumpSum: "वार्षिक lump sum टॉप-अप (₹)",
+  annualLumpSumPlaceholder: "जैसे 50000",
+  annualLumpSumHint: "हर नए साल की शुरुआत में एक बार अतिरिक्त राशि (वर्ष 2 से)।",
+  totalLumpSumInvested: "कुल lump sum निवेश",
 };
 
 const hinglish: TranslationKeys = {
@@ -385,12 +395,17 @@ const hinglish: TranslationKeys = {
   sipModeProPlus: "Pro+",
   sipModeNormalDesc: "Fixed monthly SIP — har mahine same amount.",
   sipModeProDesc: "Step-up SIP — har saal monthly amount badhao.",
+  sipModeProPlusDesc: "Step-up SIP + har naye saal ki shuruat mein extra lump sum.",
   sipProPlusSoon: "Pro+ jald aa raha hai. Yahan advanced SIP options aayenge.",
   stepUpSip: "Step-up SIP (har saal badhao)",
   stepUpSipHint: "Har naye saal ki shuruat mein monthly SIP itne % se badhti hai. Regular SIP ke liye khali ya 0 rakho.",
   annualStepUp: "Annual step-up (% per saal)",
   annualStepUpPlaceholder: "jaise 10",
   finalMonthlySip: "Last year monthly SIP",
+  annualLumpSum: "Annual lump sum top-up (₹)",
+  annualLumpSumPlaceholder: "jaise 50000",
+  annualLumpSumHint: "Har naye saal ki shuruat mein ek extra amount (year 2 se).",
+  totalLumpSumInvested: "Total lump sum invested",
 };
 
 export const translations: Record<Language, TranslationKeys> = { en, hi, hinglish };

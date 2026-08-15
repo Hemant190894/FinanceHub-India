@@ -12,7 +12,7 @@ def _round_money(value: Decimal) -> Decimal:
 
 
 def calculate_sip(payload: SipRequest) -> SipResponse:
-    """Monthly SIP with optional annual step-up and monthly compounding."""
+    """Monthly SIP with optional annual step-up, annual lump sum, and monthly compounding."""
     months = payload.tenure_years * 12
     monthly = payload.monthly_investment
     monthly_rate = payload.annual_return_rate / Decimal(100) / Decimal(12)
@@ -21,10 +21,16 @@ def calculate_sip(payload: SipRequest) -> SipResponse:
     yearly_rows: list[SipYearlyRow] = []
     corpus = Decimal(0)
     total_invested = Decimal(0)
+    total_lump_sum = Decimal(0)
 
     for month in range(1, months + 1):
-        if month > 1 and (month - 1) % 12 == 0 and payload.annual_step_up_rate > 0:
-            monthly = _round_money(monthly * step_factor)
+        if month > 1 and (month - 1) % 12 == 0:
+            if payload.annual_step_up_rate > 0:
+                monthly = _round_money(monthly * step_factor)
+            if payload.annual_lump_sum > 0:
+                corpus = (corpus * (1 + monthly_rate)) + payload.annual_lump_sum
+                total_invested += payload.annual_lump_sum
+                total_lump_sum += payload.annual_lump_sum
 
         corpus = (corpus * (1 + monthly_rate)) + monthly
         total_invested += monthly
@@ -47,7 +53,9 @@ def calculate_sip(payload: SipRequest) -> SipResponse:
         summary=SipSummary(
             monthly_investment=payload.monthly_investment,
             annual_step_up_rate=payload.annual_step_up_rate,
+            annual_lump_sum=payload.annual_lump_sum,
             final_monthly_investment=_round_money(monthly),
+            total_lump_sum_invested=_round_money(total_lump_sum),
             tenure_months=months,
             total_invested=_round_money(total_invested),
             estimated_returns=estimated_returns,

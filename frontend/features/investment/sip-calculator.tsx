@@ -14,9 +14,10 @@ import { formatINR, formatINRDetailed, formatINRLakhCrore, parseINRInput } from 
 import { SIP_DEFAULTS, SIP_TENURE_PRESETS_YEARS, getSipProjectionTenures, type SipMode } from "@/lib/investment/config";
 import type { SipRequest, SipResultWithProjections } from "@/types/investment";
 
-const MODE_DESC_KEYS: Record<Exclude<SipMode, "pro-plus">, keyof import("@/lib/i18n/types").TranslationKeys> = {
+const MODE_DESC_KEYS: Record<SipMode, keyof import("@/lib/i18n/types").TranslationKeys> = {
   normal: "sipModeNormalDesc",
   pro: "sipModeProDesc",
+  "pro-plus": "sipModeProPlusDesc",
 };
 
 export function SipCalculator() {
@@ -26,6 +27,7 @@ export function SipCalculator() {
   const [annualReturn, setAnnualReturn] = useState(SIP_DEFAULTS.annualReturn);
   const [tenureYears, setTenureYears] = useState(SIP_DEFAULTS.tenureYears);
   const [annualStepUp, setAnnualStepUp] = useState(SIP_DEFAULTS.annualStepUp);
+  const [annualLumpSum, setAnnualLumpSum] = useState(SIP_DEFAULTS.annualLumpSum);
   const [result, setResult] = useState<SipResultWithProjections | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,23 +36,35 @@ export function SipCalculator() {
   const returnNum = useMemo(() => Number(annualReturn), [annualReturn]);
   const tenureNum = useMemo(() => Number(tenureYears), [tenureYears]);
   const stepUpNum = useMemo(() => Number(annualStepUp), [annualStepUp]);
+  const lumpSumNum = useMemo(() => parseINRInput(annualLumpSum), [annualLumpSum]);
   const isProPlus = mode === "pro-plus";
   const isPro = mode === "pro";
+  const needsStepUp = isPro || isProPlus;
 
   const canCalculate =
-    !isProPlus &&
     monthlyNum > 0 &&
     returnNum >= 0 &&
     Number.isFinite(returnNum) &&
     tenureNum > 0 &&
     tenureNum <= 50 &&
     Number.isFinite(tenureNum) &&
-    (!isPro || (stepUpNum > 0 && stepUpNum <= 100 && Number.isFinite(stepUpNum)));
+    (!needsStepUp || (stepUpNum > 0 && stepUpNum <= 100 && Number.isFinite(stepUpNum))) &&
+    (!isProPlus || lumpSumNum > 0);
 
   function handleModeChange(next: SipMode) {
     setMode(next);
     setResult(null);
     setError(null);
+  }
+
+  function buildPayload(tenureYears: number): SipRequest {
+    return {
+      monthly_investment: monthlyNum,
+      annual_return_rate: returnNum,
+      tenure_years: tenureYears,
+      annual_step_up_rate: needsStepUp ? stepUpNum : 0,
+      annual_lump_sum: isProPlus ? lumpSumNum : 0,
+    };
   }
 
   async function calculate() {
@@ -60,23 +74,18 @@ export function SipCalculator() {
     setError(null);
     try {
       const userTenureYears = Math.round(tenureNum);
-      const payload: SipRequest = {
-        monthly_investment: monthlyNum,
-        annual_return_rate: returnNum,
-        tenure_years: userTenureYears,
-        annual_step_up_rate: isPro ? stepUpNum : 0,
-      };
+      const payload = buildPayload(userTenureYears);
       const data = await apiPost<SipResultWithProjections>("/api/v1/investments/sip", payload);
 
       const projectionTenures = getSipProjectionTenures(userTenureYears);
       const projections = await Promise.all(
-        projectionTenures.map(async (tenureYears) => {
+        projectionTenures.map(async (years) => {
           const projection = await apiPost<SipResultWithProjections>("/api/v1/investments/sip", {
             ...payload,
-            tenure_years: tenureYears,
+            tenure_years: years,
           });
           return {
-            tenureYears,
+            tenureYears: years,
             summary: projection.summary,
             yearly: projection.yearly,
           };
@@ -94,8 +103,8 @@ export function SipCalculator() {
 
   const summary = result?.summary ?? null;
   const hasStepUp = summary != null && Number(summary.annual_step_up_rate) > 0;
+  const hasLumpSum = summary != null && Number(summary.total_lump_sum_invested) > 0;
   const presetActive = (years: number) => Math.round(tenureNum) === years;
-  const modeDescription = isProPlus ? t.sipProPlusSoon : (t[MODE_DESC_KEYS[mode]] as string);
 
   return (
     <div className="space-y-8">
@@ -105,97 +114,115 @@ export function SipCalculator() {
         <Card className="border-border bg-card shadow-sm">
           <CardHeader>
             <CardTitle>{t.sipDetails}</CardTitle>
-            <CardDescription>{modeDescription}</CardDescription>
+            <CardDescription>{t[MODE_DESC_KEYS[mode]] as string}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            {isProPlus ? (
-              <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 text-center">
-                <p className="text-sm font-medium">{t.sipModeProPlus}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{t.sipProPlusSoon}</p>
-                <p className="mt-4 text-xs text-muted-foreground">{t.comingSoon}</p>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="monthly">{t.monthlyInvestment}</Label>
-                  <Input
-                    id="monthly"
-                    inputMode="numeric"
-                    value={monthlyInvestment}
-                    onChange={(e) => setMonthlyInvestment(e.target.value)}
-                    placeholder={t.monthlyInvestmentPlaceholder}
-                  />
-                  {monthlyNum > 0 && (
-                    <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                      {formatINRLakhCrore(monthlyNum, language)}
-                      <span className="font-normal text-muted-foreground"> · {formatINR(monthlyNum)}</span>
-                    </p>
-                  )}
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="monthly">{t.monthlyInvestment}</Label>
+              <Input
+                id="monthly"
+                inputMode="numeric"
+                value={monthlyInvestment}
+                onChange={(e) => setMonthlyInvestment(e.target.value)}
+                placeholder={t.monthlyInvestmentPlaceholder}
+              />
+              {monthlyNum > 0 && (
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                  {formatINRLakhCrore(monthlyNum, language)}
+                  <span className="font-normal text-muted-foreground"> · {formatINR(monthlyNum)}</span>
+                </p>
+              )}
+            </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="return">{t.expectedReturn}</Label>
+              <Input
+                id="return"
+                inputMode="decimal"
+                value={annualReturn}
+                onChange={(e) => setAnnualReturn(e.target.value)}
+                placeholder={t.expectedReturnPlaceholder}
+              />
+              <p className="text-xs text-muted-foreground">{t.expectedReturnHint}</p>
+            </div>
+
+            {needsStepUp && (
+              <div
+                className={`space-y-3 rounded-xl border p-4 ${
+                  isProPlus
+                    ? "border-violet-600/25 bg-violet-500/5"
+                    : "border-emerald-600/20 bg-emerald-500/5"
+                }`}
+              >
                 <div className="space-y-2">
-                  <Label htmlFor="return">{t.expectedReturn}</Label>
+                  <Label htmlFor="step-up">{t.annualStepUp}</Label>
                   <Input
-                    id="return"
+                    id="step-up"
                     inputMode="decimal"
-                    value={annualReturn}
-                    onChange={(e) => setAnnualReturn(e.target.value)}
-                    placeholder={t.expectedReturnPlaceholder}
+                    value={annualStepUp}
+                    onChange={(e) => setAnnualStepUp(e.target.value)}
+                    placeholder={t.annualStepUpPlaceholder}
                   />
-                  <p className="text-xs text-muted-foreground">{t.expectedReturnHint}</p>
+                  <p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>
                 </div>
 
-                {isPro && (
-                  <div className="space-y-2 rounded-xl border border-emerald-600/20 bg-emerald-500/5 p-4">
-                    <Label htmlFor="step-up">{t.annualStepUp}</Label>
+                {isProPlus && (
+                  <div className="space-y-2">
+                    <Label htmlFor="lump-sum">{t.annualLumpSum}</Label>
                     <Input
-                      id="step-up"
-                      inputMode="decimal"
-                      value={annualStepUp}
-                      onChange={(e) => setAnnualStepUp(e.target.value)}
-                      placeholder={t.annualStepUpPlaceholder}
+                      id="lump-sum"
+                      inputMode="numeric"
+                      value={annualLumpSum}
+                      onChange={(e) => setAnnualLumpSum(e.target.value)}
+                      placeholder={t.annualLumpSumPlaceholder}
                     />
-                    <p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>
+                    {lumpSumNum > 0 && (
+                      <p className="text-xs font-medium text-violet-700 dark:text-violet-400">
+                        {formatINRLakhCrore(lumpSumNum, language)}
+                        <span className="font-normal text-muted-foreground"> · {formatINR(lumpSumNum)}</span>
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">{t.annualLumpSumHint}</p>
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="tenure">{t.tenureYearsLabel}</Label>
-                  <Input
-                    id="tenure"
-                    inputMode="decimal"
-                    value={tenureYears}
-                    onChange={(e) => setTenureYears(e.target.value)}
-                    placeholder={t.tenurePlaceholder}
-                  />
-                  <p className="text-xs text-muted-foreground">{t.tenureHint}</p>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {SIP_TENURE_PRESETS_YEARS.map((years) => (
-                      <Button
-                        key={years}
-                        type="button"
-                        size="sm"
-                        variant={presetActive(years) ? "default" : "outline"}
-                        className={presetActive(years) ? "bg-emerald-600 hover:bg-emerald-500" : ""}
-                        onClick={() => setTenureYears(String(years))}
-                      >
-                        {t.tenureYears(years)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full bg-emerald-600 hover:bg-emerald-500"
-                  onClick={calculate}
-                  disabled={loading || !canCalculate}
-                >
-                  {loading ? t.calculating : t.calculateSip}
-                </Button>
-
-                {error && <p className="text-sm text-destructive">{error}</p>}
-              </>
+              </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="tenure">{t.tenureYearsLabel}</Label>
+              <Input
+                id="tenure"
+                inputMode="decimal"
+                value={tenureYears}
+                onChange={(e) => setTenureYears(e.target.value)}
+                placeholder={t.tenurePlaceholder}
+              />
+              <p className="text-xs text-muted-foreground">{t.tenureHint}</p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {SIP_TENURE_PRESETS_YEARS.map((years) => (
+                  <Button
+                    key={years}
+                    type="button"
+                    size="sm"
+                    variant={presetActive(years) ? "default" : "outline"}
+                    className={presetActive(years) ? "bg-emerald-600 hover:bg-emerald-500" : ""}
+                    onClick={() => setTenureYears(String(years))}
+                  >
+                    {t.tenureYears(years)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-emerald-600 hover:bg-emerald-500"
+              onClick={calculate}
+              disabled={loading || !canCalculate}
+            >
+              {loading ? t.calculating : t.calculateSip}
+            </Button>
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
         </Card>
 
@@ -222,6 +249,17 @@ export function SipCalculator() {
                     <p className="text-xs text-muted-foreground">{t.estimatedReturns}</p>
                     <p className="mt-1 text-lg font-medium">{formatINR(Number(summary.estimated_returns))}</p>
                   </div>
+                  {hasLumpSum && (
+                    <div className="rounded-xl border border-border bg-background/40 p-4 sm:col-span-2">
+                      <p className="text-xs text-muted-foreground">{t.totalLumpSumInvested}</p>
+                      <p className="mt-1 text-lg font-medium">
+                        {formatINR(Number(summary.total_lump_sum_invested))}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatINR(lumpSumNum)} / year from year 2
+                      </p>
+                    </div>
+                  )}
                   {hasStepUp && (
                     <div className="rounded-xl border border-border bg-background/40 p-4 sm:col-span-2">
                       <p className="text-xs text-muted-foreground">{t.finalMonthlySip}</p>
@@ -237,14 +275,14 @@ export function SipCalculator() {
               </>
             ) : (
               <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
-                {isProPlus ? t.sipProPlusSoon : t.emptySipResults}
+                {t.emptySipResults}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {result && mode !== "pro-plus" && (
+      {result && (
         <SipCharts
           summary={result.summary}
           yearly={result.yearly}

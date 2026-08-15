@@ -117,7 +117,12 @@ export type TranslationKeys = {
   sipModeProPlus: string;
   sipModeNormalDesc: string;
   sipModeProDesc: string;
+  sipModeProPlusDesc: string;
   sipProPlusSoon: string;
+  annualLumpSum: string;
+  annualLumpSumPlaceholder: string;
+  annualLumpSumHint: string;
+  totalLumpSumInvested: string;
   stepUpSip: string;
   stepUpSipHint: string;
   annualStepUp: string;

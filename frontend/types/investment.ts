@@ -3,12 +3,15 @@ export type SipRequest = {
   annual_return_rate: number;
   tenure_years: number;
   annual_step_up_rate?: number;
+  annual_lump_sum?: number;
 };
 
 export type SipSummary = {
   monthly_investment: string;
   annual_step_up_rate: string;
+  annual_lump_sum: string;
   final_monthly_investment: string;
+  total_lump_sum_invested: string;
   tenure_months: number;
   total_invested: string;
   estimated_returns: string;
