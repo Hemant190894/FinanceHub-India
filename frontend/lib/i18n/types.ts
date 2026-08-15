@@ -43,6 +43,9 @@ export type TranslationKeys = {
   calcCarLoanEmi: string;
   calcEligibility: string;
   calcPrepayment: string;
+  adLabel: string;
+  adPlaceholder: string;
+  adConfigHint: string;
   statusLive: string;
   statusSoon: string;
   open: string;

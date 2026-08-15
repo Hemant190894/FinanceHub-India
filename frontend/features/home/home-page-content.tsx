@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 
-import { CalculatorDirectory } from "@/components/calculator-directory";
+import { PageWithSidebar } from "@/components/page-with-sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { CalculatorDirectory } from "@/components/calculator-directory";
 import { useLanguage } from "@/components/providers/language-provider";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ export function HomePageContent() {
       <SiteHeader />
 
       <main>
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+        <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-6 sm:py-24">
           <div className="max-w-3xl">
             <p className="mb-4 text-sm font-medium text-emerald-600 dark:text-emerald-400">{t.heroBadge}</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
@@ -48,7 +49,7 @@ export function HomePageContent() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <section className="mx-auto max-w-[90rem] px-4 pb-16 sm:px-6">
           <div className="grid gap-4 md:grid-cols-3">
             {features.map((feature) => (
               <Card key={feature.title} className="border-border bg-card shadow-sm">
@@ -61,12 +62,14 @@ export function HomePageContent() {
           </div>
         </section>
 
-        <section id="calculators" className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        <section id="calculators" className="mx-auto max-w-[90rem] px-4 pb-24 sm:px-6">
           <div className="mb-6">
             <h2 className="text-2xl font-semibold">{t.calculatorsTitle}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t.loanEmiCalculatorsDesc}</p>
           </div>
-          <CalculatorDirectory />
+          <PageWithSidebar>
+            <CalculatorDirectory />
+          </PageWithSidebar>
         </section>
       </main>
 
