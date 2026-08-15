@@ -20,9 +20,9 @@ export function AdLeftPanel() {
   if (!panel.enabled) return null;
 
   return (
-    <aside className="w-full xl:w-80 shrink-0" aria-label="Advertisement">
+    <aside className="w-full shrink-0 xl:w-80" aria-label="Advertisement">
       <div className="xl:sticky xl:top-20">
-        <AdSlot slot="leftPanel" variant="panel" />
+        <AdSlot slot="leftPanel" variant="panel" className="xl:min-h-[min(560px,72vh)]" />
       </div>
     </aside>
   );
