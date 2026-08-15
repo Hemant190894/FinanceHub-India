@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.api.routes import health, investments, loans
+from app.api.routes import calculators, health, investments, loans
 from app.core.config import settings
 
 app = FastAPI(
@@ -28,3 +28,4 @@ async def root() -> RedirectResponse:
 app.include_router(health.router, tags=["health"])
 app.include_router(loans.router, prefix="/api/v1/loans", tags=["loans"])
 app.include_router(investments.router, prefix="/api/v1/investments", tags=["investments"])
+app.include_router(calculators.router, prefix="/api/v1/calculators", tags=["calculators"])
