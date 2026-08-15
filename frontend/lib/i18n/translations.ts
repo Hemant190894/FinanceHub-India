@@ -123,17 +123,27 @@ const en: TranslationKeys = {
   sipModeProPlus: "Pro+",
   sipModeNormalDesc: "Fixed monthly SIP — same amount every month.",
   sipModeProDesc: "Step-up SIP — increase your monthly amount every year.",
-  sipModeProPlusDesc: "Step-up SIP plus an extra lump sum at the start of each new year.",
+  sipModeProPlusDesc:
+    "Buy-the-dip plan — optional step-up plus extra when you assume ~1% market falls.",
   sipProPlusSoon: "Pro+ is coming soon. Advanced SIP options will appear here.",
+  proPlusStepUpToggle: "Also increase monthly SIP every year (step-up)",
+  dipBuyingTitle: "Buy on dips (your assumption)",
+  dipBuyingDesc:
+    "Not real market data — how often a ~1% fall happens per month, and how much you invest each time.",
+  dipsPerMonth: "Average ~1% falls per month",
+  dipsPerMonthPlaceholder: "e.g. 2",
+  dipsPerMonthHint: "Example: 2 ≈ two one-percent drops in a typical month.",
+  amountPerDip: "Invest per 1% fall (₹)",
+  amountPerDipPlaceholder: "e.g. 2000",
+  monthlyDipPreview: (falls, perDip, monthlyExtra) =>
+    `${falls} falls × ₹${perDip.toLocaleString("en-IN")} = ₹${monthlyExtra.toLocaleString("en-IN")} extra/month`,
+  totalDipInvested: "Total dip investments",
+  monthlyExtraFromDips: "Extra per month (from dips)",
   stepUpSip: "Step-up SIP (increase every year)",
   stepUpSipHint: "Your monthly SIP goes up by this % at the start of each new year. Leave empty or 0 for regular SIP.",
   annualStepUp: "Annual step-up (% per year)",
   annualStepUpPlaceholder: "e.g. 10",
   finalMonthlySip: "Last year monthly SIP",
-  annualLumpSum: "Annual lump sum top-up (₹)",
-  annualLumpSumPlaceholder: "e.g. 50000",
-  annualLumpSumHint: "Extra amount invested once at the start of each new year (from year 2).",
-  totalLumpSumInvested: "Total lump sum invested",
 };
 
 const hi: TranslationKeys = {
@@ -259,17 +269,26 @@ const hi: TranslationKeys = {
   sipModeProPlus: "प्रो+",
   sipModeNormalDesc: "फिक्स्ड मासिक एसआईपी — हर महीने एक जैसी राशि।",
   sipModeProDesc: "स्टेप-अप एसआईपी — हर साल मासिक राशि बढ़ाएँ।",
-  sipModeProPlusDesc: "स्टेप-अप एसआईपी + हर नए साल की शुरुआत में अतिरिक्त lump sum।",
+  sipModeProPlusDesc: "डिप पर खरीद — वैकल्पिक स्टेप-अप + ~1% गिरावट पर अतिरिक्त निवेश (आपकी मान्यता)।",
   sipProPlusSoon: "प्रो+ जल्द आ रहा है। यहाँ उन्नत एसआईपी विकल्प होंगे।",
+  proPlusStepUpToggle: "मासिक एसआईपी हर साल बढ़ाएँ (स्टेप-अप)",
+  dipBuyingTitle: "गिरावट पर खरीद (आपकी मान्यता)",
+  dipBuyingDesc:
+    "वास्तविक मार्केट डेटा नहीं — महीने में ~1% गिरावट कितनी बार, और हर बार कितना निवेश।",
+  dipsPerMonth: "माह में औसत ~1% गिरावट",
+  dipsPerMonthPlaceholder: "जैसे 2",
+  dipsPerMonthHint: "उदाहरण: 2 = एक सामान्य महीने में लगभग दो एक-प्रतिशत गिरावट।",
+  amountPerDip: "प्रति 1% गिरावट निवेश (₹)",
+  amountPerDipPlaceholder: "जैसे 2000",
+  monthlyDipPreview: (falls, perDip, monthlyExtra) =>
+    `${falls} गिरावट × ₹${perDip.toLocaleString("en-IN")} = ₹${monthlyExtra.toLocaleString("en-IN")} अतिरिक्त/माह`,
+  totalDipInvested: "कुल डिप निवेश",
+  monthlyExtraFromDips: "माह का अतिरिक्त (डिप से)",
   stepUpSip: "स्टेप-अप एसआईपी (हर साल बढ़ोतरी)",
   stepUpSipHint: "हर नए साल की शुरुआत में मासिक एसआईपी इतने % से बढ़ती है। सामान्य एसआईपी के लिए खाली या 0 रखें।",
   annualStepUp: "वार्षिक स्टेप-अप (% प्रति वर्ष)",
   annualStepUpPlaceholder: "जैसे 10",
   finalMonthlySip: "अंतिम वर्ष की मासिक एसआईपी",
-  annualLumpSum: "वार्षिक lump sum टॉप-अप (₹)",
-  annualLumpSumPlaceholder: "जैसे 50000",
-  annualLumpSumHint: "हर नए साल की शुरुआत में एक बार अतिरिक्त राशि (वर्ष 2 से)।",
-  totalLumpSumInvested: "कुल lump sum निवेश",
 };
 
 const hinglish: TranslationKeys = {
@@ -395,17 +414,26 @@ const hinglish: TranslationKeys = {
   sipModeProPlus: "Pro+",
   sipModeNormalDesc: "Fixed monthly SIP — har mahine same amount.",
   sipModeProDesc: "Step-up SIP — har saal monthly amount badhao.",
-  sipModeProPlusDesc: "Step-up SIP + har naye saal ki shuruat mein extra lump sum.",
+  sipModeProPlusDesc: "Buy-the-dip — optional step-up + ~1% fall par extra (tumhari assumption).",
   sipProPlusSoon: "Pro+ jald aa raha hai. Yahan advanced SIP options aayenge.",
+  proPlusStepUpToggle: "Monthly SIP har saal badhao bhi (step-up)",
+  dipBuyingTitle: "Dip par khareedo (tumhari assumption)",
+  dipBuyingDesc:
+    "Real market data nahi — month mein ~1% kitni baar girta hai, aur har baar kitna invest karoge.",
+  dipsPerMonth: "Average ~1% falls per month",
+  dipsPerMonthPlaceholder: "jaise 2",
+  dipsPerMonthHint: "Example: 2 = typical month mein lagbhag 2 one-percent drops.",
+  amountPerDip: "Per 1% fall invest (₹)",
+  amountPerDipPlaceholder: "jaise 2000",
+  monthlyDipPreview: (falls, perDip, monthlyExtra) =>
+    `${falls} falls × ₹${perDip.toLocaleString("en-IN")} = ₹${monthlyExtra.toLocaleString("en-IN")} extra/month`,
+  totalDipInvested: "Total dip investments",
+  monthlyExtraFromDips: "Extra per month (dips se)",
   stepUpSip: "Step-up SIP (har saal badhao)",
   stepUpSipHint: "Har naye saal ki shuruat mein monthly SIP itne % se badhti hai. Regular SIP ke liye khali ya 0 rakho.",
   annualStepUp: "Annual step-up (% per saal)",
   annualStepUpPlaceholder: "jaise 10",
   finalMonthlySip: "Last year monthly SIP",
-  annualLumpSum: "Annual lump sum top-up (₹)",
-  annualLumpSumPlaceholder: "jaise 50000",
-  annualLumpSumHint: "Har naye saal ki shuruat mein ek extra amount (year 2 se).",
-  totalLumpSumInvested: "Total lump sum invested",
 };
 
 export const translations: Record<Language, TranslationKeys> = { en, hi, hinglish };

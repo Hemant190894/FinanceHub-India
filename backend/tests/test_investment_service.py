@@ -55,24 +55,38 @@ def test_step_up_zero_matches_flat() -> None:
     assert flat.summary.total_invested == explicit.summary.total_invested
 
 
-def test_pro_plus_lump_sum_increases_corpus() -> None:
-    stepped = calculate_sip(
+def test_pro_plus_dip_buying() -> None:
+    base = calculate_sip(
         SipRequest(
             monthly_investment=Decimal("10000"),
             annual_return_rate=Decimal("12"),
-            tenure_years=5,
-            annual_step_up_rate=Decimal("10"),
+            tenure_years=2,
         )
     )
-    pro_plus = calculate_sip(
+    with_dips = calculate_sip(
         SipRequest(
             monthly_investment=Decimal("10000"),
             annual_return_rate=Decimal("12"),
-            tenure_years=5,
-            annual_step_up_rate=Decimal("10"),
-            annual_lump_sum=Decimal("50000"),
+            tenure_years=2,
+            dips_per_month=Decimal("2"),
+            amount_per_dip=Decimal("2000"),
         )
     )
-    assert pro_plus.summary.total_lump_sum_invested == Decimal("200000.00")
-    assert pro_plus.summary.maturity_value > stepped.summary.maturity_value
-    assert pro_plus.summary.total_invested > stepped.summary.total_invested
+    assert with_dips.summary.monthly_dip_investment == Decimal("4000.00")
+    assert with_dips.summary.total_dip_invested == Decimal("96000.00")
+    assert with_dips.summary.maturity_value > base.summary.maturity_value
+
+
+def test_pro_plus_step_up_and_dips() -> None:
+    result = calculate_sip(
+        SipRequest(
+            monthly_investment=Decimal("10000"),
+            annual_return_rate=Decimal("12"),
+            tenure_years=3,
+            annual_step_up_rate=Decimal("10"),
+            dips_per_month=Decimal("1"),
+            amount_per_dip=Decimal("1000"),
+        )
+    )
+    assert result.summary.annual_step_up_rate == Decimal("10")
+    assert result.summary.total_dip_invested == Decimal("36000.00")

@@ -6,12 +6,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,7 +19,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_BOTTOM_MARGIN, getChartTheme } from "@/lib/chart-theme";
 import { formatINR, formatINRCompact } from "@/lib/format";
-import type { SipProjection, SipSummary, SipYearlyRow } from "@/types/investment";
+import type { SipProjection, SipYearlyRow } from "@/types/investment";
 
 const COLORS = {
   invested: "#059669",
@@ -31,7 +28,6 @@ const COLORS = {
 };
 
 type SipChartsProps = {
-  summary: SipSummary;
   yearly: SipYearlyRow[];
   userTenureYears: number;
   projections: SipProjection[];
@@ -138,18 +134,10 @@ function RotatedXAxis({ axisColor }: { axisColor: string }) {
   );
 }
 
-export function SipCharts({ summary, yearly, userTenureYears, projections }: SipChartsProps) {
+export function SipCharts({ yearly, userTenureYears, projections }: SipChartsProps) {
   const { t } = useLanguage();
   const { resolvedTheme } = useTheme();
   const { gridColor, axisColor } = getChartTheme(resolvedTheme === "dark");
-
-  const splitData = useMemo(
-    () => [
-      { name: t.chartInvested, value: Number(summary.total_invested), color: COLORS.invested },
-      { name: t.chartReturns, value: Number(summary.estimated_returns), color: COLORS.returns },
-    ],
-    [summary, t],
-  );
 
   const growthData = useMemo(
     () => buildGrowthChartData(yearly, userTenureYears, projections, t.chartYear),
@@ -171,75 +159,18 @@ export function SipCharts({ summary, yearly, userTenureYears, projections }: Sip
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold tracking-tight">{t.chartsTitle}</h2>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t.chartSipSplit}</CardTitle>
-            <CardDescription>{t.chartSipSplitDesc}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[280px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={splitData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    stroke="none"
-                  >
-                    {splitData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => (
-                      <ChartTooltip
-                        active={active}
-                        payload={payload?.map((p) => ({
-                          name: String(p.name),
-                          value: Number(p.value),
-                          color: String(p.payload.color),
-                        }))}
-                      />
-                    )}
-                  />
-                  <Legend formatter={(value) => <span className="text-sm text-foreground">{value}</span>} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-2 grid grid-cols-2 gap-3 text-center text-sm">
-              <div className="rounded-lg bg-emerald-500/10 p-2">
-                <p className="text-muted-foreground">{t.chartInvested}</p>
-                <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  {formatINRCompact(Number(summary.total_invested))}
-                </p>
-              </div>
-              <div className="rounded-lg bg-blue-500/10 p-2">
-                <p className="text-muted-foreground">{t.chartReturns}</p>
-                <p className="font-semibold text-blue-600 dark:text-blue-400">
-                  {formatINRCompact(Number(summary.estimated_returns))}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t.chartCorpusGrowth}</CardTitle>
-            <CardDescription>{t.chartCorpusGrowthDesc}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[320px] w-full">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{t.chartCorpusGrowth}</CardTitle>
+          <CardDescription>{t.chartCorpusGrowthDesc}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={growthData}
-                  margin={{ top: 8, right: 12, left: 4, bottom: CHART_BOTTOM_MARGIN }}
+                  margin={{ top: 12, right: 16, left: 8, bottom: CHART_BOTTOM_MARGIN }}
                 >
                   <CartesianGrid stroke={gridColor} strokeDasharray="4 4" />
                   <RotatedXAxis axisColor={axisColor} />
@@ -248,7 +179,7 @@ export function SipCharts({ summary, yearly, userTenureYears, projections }: Sip
                     tick={{ fill: axisColor, fontSize: 11 }}
                     tickLine={false}
                     axisLine={false}
-                    width={56}
+                    width={58}
                   />
                   <Tooltip
                     cursor={false}
@@ -316,7 +247,6 @@ export function SipCharts({ summary, yearly, userTenureYears, projections }: Sip
             </div>
           </CardContent>
         </Card>
-      </div>
 
       <Card>
         <CardHeader>
