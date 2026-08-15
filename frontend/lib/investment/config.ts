@@ -24,4 +24,6 @@ export const SIP_DEFAULTS = {
   annualReturn: "12",
   tenureYears: "10",
   annualStepUp: "10",
+  dipsPerMonth: "2",
+  amountPerDip: "2000",
 };
