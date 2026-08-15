@@ -26,11 +26,7 @@ export function LoanCalculatorNav() {
             key={type}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={cn(
-              buttonVariants({ variant: active ? "default" : "outline", size: "sm" }),
-              "rounded-full px-4",
-              active && "bg-emerald-600 hover:bg-emerald-500",
-            )}
+            className={cn(buttonVariants({ variant: active ? "default" : "outline", size: "sm" }), "rounded-full px-4")}
           >
             {label}
           </Link>

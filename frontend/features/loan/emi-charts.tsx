@@ -24,11 +24,6 @@ import { CHART_BOTTOM_MARGIN, getChartTheme } from "@/lib/chart-theme";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import type { AmortizationResponse, EmiResponse } from "@/types/loan";
 
-const COLORS = {
-  principal: "#059669",
-  interest: "#f59e0b",
-};
-
 type EmiChartsProps = {
   summary: EmiResponse;
   schedule: AmortizationResponse["schedule"];
@@ -113,26 +108,27 @@ function RotatedXAxis({
 export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps) {
   const { t } = useLanguage();
   const { resolvedTheme } = useTheme();
-  const { gridColor, axisColor } = getChartTheme(resolvedTheme === "dark");
+  const theme = getChartTheme(resolvedTheme === "dark");
+  const { gridColor, axisColor } = theme;
 
   const pieData = useMemo(
     () => [
-      { name: t.chartPrincipal, value: principalAmount, color: COLORS.principal },
-      { name: t.chartInterest, value: Number(summary.total_interest), color: COLORS.interest },
+      { name: t.chartPrincipal, value: principalAmount, color: theme.principal },
+      { name: t.chartInterest, value: Number(summary.total_interest), color: theme.interest },
     ],
-    [principalAmount, summary.total_interest, t.chartPrincipal, t.chartInterest],
+    [principalAmount, summary.total_interest, t.chartPrincipal, t.chartInterest, theme.principal, theme.interest],
   );
 
   const yearlyData = useMemo(() => aggregateYearly(schedule, t.chartYear), [schedule, t.chartYear]);
 
   return (
     <section className="space-y-6">
-      <h2 className="text-xl font-semibold">{t.chartsTitle}</h2>
+      <h2 className="text-xl font-semibold tracking-tight">{t.chartsTitle}</h2>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-border bg-card shadow-md">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-lg">{t.chartPaymentSplit}</CardTitle>
+            <CardTitle className="text-base">{t.chartPaymentSplit}</CardTitle>
             <CardDescription>{t.chartPaymentSplitDesc}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -141,12 +137,12 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
                 <PieChart>
                   <defs>
                     <linearGradient id="principalGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#34d399" />
-                      <stop offset="100%" stopColor="#059669" />
+                      <stop offset="0%" stopColor={theme.principalSoft} />
+                      <stop offset="100%" stopColor={theme.principal} />
                     </linearGradient>
                     <linearGradient id="interestGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#fcd34d" />
-                      <stop offset="100%" stopColor="#d97706" />
+                      <stop offset="0%" stopColor={theme.interestSoft} />
+                      <stop offset="100%" stopColor={theme.interest} />
                     </linearGradient>
                   </defs>
                   <Pie
@@ -182,11 +178,9 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
               </ResponsiveContainer>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-3 text-center text-sm">
-              <div className="rounded-lg bg-emerald-500/10 p-2">
+              <div className="rounded-lg bg-primary/10 p-2">
                 <p className="text-muted-foreground">{t.chartPrincipal}</p>
-                <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  {formatINRCompact(principalAmount)}
-                </p>
+                <p className="font-semibold text-primary">{formatINRCompact(principalAmount)}</p>
               </div>
               <div className="rounded-lg bg-amber-500/10 p-2">
                 <p className="text-muted-foreground">{t.chartInterest}</p>
@@ -199,9 +193,9 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
         </Card>
 
         {/* Line — principal + interest per year */}
-        <Card className="border-border bg-card shadow-md">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-lg">{t.chartBalanceTitle}</CardTitle>
+            <CardTitle className="text-base">{t.chartBalanceTitle}</CardTitle>
             <CardDescription>{t.chartBalanceDesc}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -228,7 +222,7 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
                         payload={payload?.map((p) => ({
                           name: String(p.name),
                           value: Number(p.value),
-                          color: p.dataKey === "principal" ? COLORS.principal : COLORS.interest,
+                          color: p.dataKey === "principal" ? theme.principal : theme.interest,
                         }))}
                       />
                     )}
@@ -238,7 +232,7 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
                     type="monotone"
                     dataKey="principal"
                     name={t.chartPrincipal}
-                    stroke={COLORS.principal}
+                    stroke={theme.principal}
                     strokeWidth={2.5}
                     dot={{ r: 3, strokeWidth: 0 }}
                     activeDot={{ r: 5, strokeWidth: 0 }}
@@ -247,7 +241,7 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
                     type="monotone"
                     dataKey="interest"
                     name={t.chartInterest}
-                    stroke={COLORS.interest}
+                    stroke={theme.interest}
                     strokeWidth={2.5}
                     dot={{ r: 3, strokeWidth: 0 }}
                     activeDot={{ r: 5, strokeWidth: 0 }}
@@ -260,9 +254,9 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
       </div>
 
       {/* Stacked bar — yearly principal vs interest */}
-      <Card className="border-border bg-card shadow-md">
+      <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-lg">{t.chartYearlyTitle}</CardTitle>
+          <CardTitle className="text-base">{t.chartYearlyTitle}</CardTitle>
           <CardDescription>{t.chartYearlyDesc}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -289,18 +283,18 @@ export function EmiCharts({ summary, schedule, principalAmount }: EmiChartsProps
                       payload={payload?.map((p) => ({
                         name: String(p.name),
                         value: Number(p.value),
-                        color: p.dataKey === "principal" ? COLORS.principal : COLORS.interest,
+                        color: p.dataKey === "principal" ? theme.principal : theme.interest,
                       }))}
                     />
                   )}
                 />
                 <Legend formatter={(value) => <span className="text-sm text-foreground">{value}</span>} />
-                <Bar dataKey="principal" name={t.chartPrincipal} stackId="emi" fill={COLORS.principal} />
+                <Bar dataKey="principal" name={t.chartPrincipal} stackId="emi" fill={theme.principal} />
                 <Bar
                   dataKey="interest"
                   name={t.chartInterest}
                   stackId="emi"
-                  fill={COLORS.interest}
+                  fill={theme.interest}
                   radius={[6, 6, 0, 0]}
                 />
               </BarChart>

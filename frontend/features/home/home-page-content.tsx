@@ -1,5 +1,6 @@
 "use client";
 
+import { GitCompare, Gauge, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { PageWithSidebar } from "@/components/page-with-sidebar";
@@ -7,36 +8,31 @@ import { SiteHeader } from "@/components/site-header";
 import { CalculatorDirectory } from "@/components/calculator-directory";
 import { useLanguage } from "@/components/providers/language-provider";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export function HomePageContent() {
   const { t } = useLanguage();
 
   const features = [
-    { title: t.feature1Title, description: t.feature1Desc },
-    { title: t.feature2Title, description: t.feature2Desc },
-    { title: t.feature3Title, description: t.feature3Desc },
+    { title: t.feature1Title, description: t.feature1Desc, icon: GitCompare },
+    { title: t.feature2Title, description: t.feature2Desc, icon: Gauge },
+    { title: t.feature3Title, description: t.feature3Desc, icon: ShieldCheck },
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-background to-background dark:from-emerald-900/20">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background dark:from-primary/15">
       <SiteHeader />
 
       <main>
         <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-6 sm:py-24">
           <div className="max-w-3xl">
-            <p className="mb-4 text-sm font-medium text-emerald-600 dark:text-emerald-400">{t.heroBadge}</p>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
+            <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
               {t.heroTitle1}
-              <span className="block text-emerald-600 dark:text-emerald-400">{t.heroTitle2}</span>
+              <span className="block text-primary">{t.heroTitle2}</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">{t.heroDescription}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/calculators/home-loan-emi"
-                className={cn(buttonVariants({ size: "lg" }), "rounded-full bg-emerald-600 hover:bg-emerald-500")}
-              >
+              <Link href="/calculators/home-loan-emi" className={cn(buttonVariants({ size: "lg" }), "rounded-full")}>
                 {t.ctaStartEmi}
               </Link>
               <Link
@@ -50,14 +46,17 @@ export function HomePageContent() {
         </section>
 
         <section className="mx-auto max-w-[90rem] px-4 pb-16 sm:px-6">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-8 border-t border-border pt-10 md:grid-cols-3">
             {features.map((feature) => (
-              <Card key={feature.title} className="border-border bg-card shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-              </Card>
+              <div key={feature.title} className="flex gap-3.5">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <feature.icon className="size-4.5" />
+                </span>
+                <div>
+                  <h3 className="font-medium">{feature.title}</h3>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{feature.description}</p>
+                </div>
+              </div>
             ))}
           </div>
         </section>

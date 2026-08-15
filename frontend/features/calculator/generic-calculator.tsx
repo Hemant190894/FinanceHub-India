@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 
+import { NumberSliderField } from "@/components/number-slider-field";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCountUp } from "@/hooks/use-count-up";
 import { apiPost } from "@/lib/api";
 import { CALCULATOR_BY_SLUG } from "@/lib/calculators/registry";
 import { isSelectField } from "@/lib/calculators/registry";
@@ -87,10 +88,14 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
   const summary = result?.summary ?? null;
   const regime = values.regime ?? "new";
   const showDeductions = config.id === "income-tax" && regime === "old";
+  const primaryResult = config.results[0];
+  const animatedPrimary = useCountUp(
+    summary && primaryResult ? Number(summary[primaryResult.key] ?? 0) : null,
+  );
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-      <Card className="border-border bg-card shadow-sm">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle>{t.calcDetails}</CardTitle>
           <CardDescription>{t.calcPageDesc}</CardDescription>
@@ -105,7 +110,7 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
                   <Label htmlFor={field.id}>{t[field.labelKey as LabelKey] as string}</Label>
                   <select
                     id={field.id}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="border-input bg-background dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-8 w-full rounded-lg border px-2.5 py-1 text-base outline-none transition-colors focus-visible:ring-3 md:text-sm"
                     value={values[field.id]}
                     onChange={(e) => setValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
                   >
@@ -118,23 +123,21 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
             }
 
             return (
-              <div key={field.id} className="space-y-2">
-                <Label htmlFor={field.id}>{t[field.labelKey as LabelKey] as string}</Label>
-                <Input
-                  id={field.id}
-                  inputMode={field.inputMode ?? "numeric"}
-                  value={values[field.id]}
-                  onChange={(e) => setValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                />
-              </div>
+              <NumberSliderField
+                key={field.id}
+                id={field.id}
+                label={t[field.labelKey as LabelKey] as string}
+                inputMode={field.inputMode ?? "numeric"}
+                value={values[field.id]}
+                onChange={(next) => setValues((prev) => ({ ...prev, [field.id]: next }))}
+                min={field.slider.min}
+                max={field.slider.max}
+                step={field.slider.step}
+              />
             );
           })}
 
-          <Button
-            className="w-full bg-emerald-600 hover:bg-emerald-500"
-            onClick={calculate}
-            disabled={loading || !canCalculate}
-          >
+          <Button className="w-full" onClick={calculate} disabled={loading || !canCalculate}>
             {loading ? t.calculating : t.calculate}
           </Button>
 
@@ -142,25 +145,35 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-600/25 bg-card shadow-sm dark:border-emerald-500/20">
+      <Card className="flex flex-col border-primary/25 bg-gradient-to-br from-primary/[0.04] via-card to-card dark:from-primary/10 dark:via-card/60 dark:to-card/60">
         <CardHeader>
           <CardTitle>{t.results}</CardTitle>
           <CardDescription>{t.genericResultsDesc}</CardDescription>
         </CardHeader>
-        <CardContent>
-          {summary ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {config.results.map((row) => (
-                <div key={row.key} className="rounded-xl border border-border bg-background/40 p-4">
-                  <p className="text-xs text-muted-foreground">{t[row.labelKey as LabelKey] as string}</p>
-                  <p className="mt-1 text-lg font-medium">
-                    {formatResult(summary[row.key] ?? "0", row.format)}
-                  </p>
-                </div>
-              ))}
+        <CardContent className="flex flex-1 flex-col">
+          {summary && primaryResult ? (
+            <div className="space-y-6 transition-[opacity,transform] duration-300 ease-(--ease-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0">
+              <div>
+                <p className="text-sm text-muted-foreground">{t[primaryResult.labelKey as LabelKey] as string}</p>
+                <p className="font-display text-4xl font-semibold tracking-tight text-primary tabular-nums">
+                  {primaryResult.format === "inr"
+                    ? formatINRDetailed(animatedPrimary)
+                    : formatResult(String(animatedPrimary), primaryResult.format)}
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {config.results.slice(1).map((row) => (
+                  <div key={row.key} className="rounded-xl border border-border/60 bg-muted/40 p-4">
+                    <p className="text-xs text-muted-foreground">{t[row.labelKey as LabelKey] as string}</p>
+                    <p className="mt-1 text-lg font-medium tabular-nums">
+                      {formatResult(summary[row.key] ?? "0", row.format)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
               {t.emptyCalcResults}
             </div>
           )}

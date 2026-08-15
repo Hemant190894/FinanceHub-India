@@ -2,16 +2,34 @@
 
 import { useMemo, useState } from "react";
 
+import { NumberSliderField } from "@/components/number-slider-field";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { EmiCharts } from "@/features/loan/emi-charts";
+import { useCountUp } from "@/hooks/use-count-up";
 import { apiPost } from "@/lib/api";
 import { formatINR, formatINRDetailed, formatINRLakhCrore, parseINRInput } from "@/lib/format";
 import { LOAN_DEFAULTS, LOAN_TENURE_PRESETS, type LoanType } from "@/lib/loan/config";
 import type { AmortizationResponse, EmiRequest } from "@/types/loan";
+
+const PRINCIPAL_MAX: Record<LoanType, number> = {
+  home: 30000000,
+  personal: 5000000,
+  car: 10000000,
+};
+
+const PRINCIPAL_STEP: Record<LoanType, number> = {
+  home: 50000,
+  personal: 10000,
+  car: 10000,
+};
+
+const TENURE_MAX_YEARS: Record<LoanType, number> = {
+  home: 30,
+  personal: 7,
+  car: 8,
+};
 
 type EmiCalculatorProps = {
   loanType: LoanType;
@@ -63,54 +81,62 @@ export function EmiCalculator({ loanType }: EmiCalculatorProps) {
 
   const summary = result?.summary ?? null;
   const presetActive = (months: number) => Math.round(Number(tenureYears) * 12) === months;
+  const animatedEmi = useCountUp(summary ? Number(summary.monthly_emi) : null);
 
   return (
     <div className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        <Card className="border-border bg-card shadow-sm">
+        <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle>{t.loanDetails}</CardTitle>
             <CardDescription>{t.loanDetailsDesc}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="principal">{t.loanAmount}</Label>
-              <Input
-                id="principal"
-                inputMode="numeric"
-                value={principal}
-                onChange={(e) => setPrincipal(e.target.value)}
-                placeholder={t.loanAmountPlaceholder}
-              />
-              {principalNum > 0 && (
-                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                  {formatINRLakhCrore(principalNum, language)}
-                  <span className="font-normal text-muted-foreground"> · {formatINR(principalNum)}</span>
-                </p>
-              )}
-            </div>
+            <NumberSliderField
+              id="principal"
+              label={t.loanAmount}
+              inputMode="numeric"
+              value={principal}
+              onChange={setPrincipal}
+              min={100000}
+              max={PRINCIPAL_MAX[loanType]}
+              step={PRINCIPAL_STEP[loanType]}
+              placeholder={t.loanAmountPlaceholder}
+              helper={
+                principalNum > 0 ? (
+                  <p className="text-xs font-medium text-primary">
+                    {formatINRLakhCrore(principalNum, language)}
+                    <span className="font-normal text-muted-foreground"> · {formatINR(principalNum)}</span>
+                  </p>
+                ) : undefined
+              }
+            />
+
+            <NumberSliderField
+              id="rate"
+              label={t.interestRate}
+              inputMode="decimal"
+              value={rate}
+              onChange={setRate}
+              min={1}
+              max={20}
+              step={0.05}
+              placeholder={t.interestRatePlaceholder}
+            />
 
             <div className="space-y-2">
-              <Label htmlFor="rate">{t.interestRate}</Label>
-              <Input
-                id="rate"
-                inputMode="decimal"
-                value={rate}
-                onChange={(e) => setRate(e.target.value)}
-                placeholder={t.interestRatePlaceholder}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tenure">{t.tenureYearsLabel}</Label>
-              <Input
+              <NumberSliderField
                 id="tenure"
+                label={t.tenureYearsLabel}
                 inputMode="decimal"
                 value={tenureYears}
-                onChange={(e) => setTenureYears(e.target.value)}
+                onChange={setTenureYears}
+                min={1}
+                max={TENURE_MAX_YEARS[loanType]}
+                step={1}
                 placeholder={t.tenurePlaceholder}
+                helper={<p className="text-xs text-muted-foreground">{t.tenureHint}</p>}
               />
-              <p className="text-xs text-muted-foreground">{t.tenureHint}</p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {tenurePresets.map((months) => (
                   <Button
@@ -118,7 +144,6 @@ export function EmiCalculator({ loanType }: EmiCalculatorProps) {
                     type="button"
                     size="sm"
                     variant={presetActive(months) ? "default" : "outline"}
-                    className={presetActive(months) ? "bg-emerald-600 hover:bg-emerald-500" : ""}
                     onClick={() => applyTenurePreset(months)}
                   >
                     {t.tenureYears(months / 12)}
@@ -127,11 +152,7 @@ export function EmiCalculator({ loanType }: EmiCalculatorProps) {
               </div>
             </div>
 
-            <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-500"
-              onClick={calculate}
-              disabled={loading || !canCalculate}
-            >
+            <Button className="w-full" onClick={calculate} disabled={loading || !canCalculate}>
               {loading ? t.calculating : t.calculateEmi}
             </Button>
 
@@ -139,33 +160,33 @@ export function EmiCalculator({ loanType }: EmiCalculatorProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-600/25 bg-card shadow-sm dark:border-emerald-500/20 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:via-card/60 dark:to-card/60">
+        <Card className="flex flex-col border-primary/25 bg-gradient-to-br from-primary/[0.04] via-card to-card dark:from-primary/10 dark:via-card/60 dark:to-card/60">
           <CardHeader>
             <CardTitle>{t.results}</CardTitle>
             <CardDescription>{t.resultsDesc}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="flex flex-1 flex-col space-y-6">
             {summary ? (
-              <>
+              <div className="space-y-6 transition-[opacity,transform] duration-300 ease-(--ease-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0">
                 <div>
                   <p className="text-sm text-muted-foreground">{t.monthlyEmi}</p>
-                  <p className="text-4xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    {formatINRDetailed(Number(summary.monthly_emi))}
+                  <p className="font-display text-4xl font-semibold tracking-tight text-primary tabular-nums transition-transform">
+                    {formatINRDetailed(animatedEmi)}
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border bg-background/40 p-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
                     <p className="text-xs text-muted-foreground">{t.totalPayment}</p>
-                    <p className="mt-1 text-lg font-medium">{formatINR(Number(summary.total_payment))}</p>
+                    <p className="mt-1 text-lg font-medium tabular-nums">{formatINR(Number(summary.total_payment))}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/40 p-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
                     <p className="text-xs text-muted-foreground">{t.totalInterest}</p>
-                    <p className="mt-1 text-lg font-medium">{formatINR(Number(summary.total_interest))}</p>
+                    <p className="mt-1 text-lg font-medium tabular-nums">{formatINR(Number(summary.total_interest))}</p>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
-              <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+              <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
                 {t.emptyResults}
               </div>
             )}
@@ -174,11 +195,13 @@ export function EmiCalculator({ loanType }: EmiCalculatorProps) {
       </div>
 
       {result && (
-        <EmiCharts
-          summary={result.summary}
-          schedule={result.schedule}
-          principalAmount={principalNum}
-        />
+        <div className="transition-[opacity,transform] duration-300 ease-(--ease-out) starting:translate-y-3 starting:opacity-0 motion-reduce:starting:translate-y-0">
+          <EmiCharts
+            summary={result.summary}
+            schedule={result.schedule}
+            principalAmount={principalNum}
+          />
+        </div>
       )}
     </div>
   );

@@ -2,14 +2,14 @@
 
 import { useMemo, useState } from "react";
 
+import { NumberSliderField } from "@/components/number-slider-field";
 import { useLanguage } from "@/components/providers/language-provider";
 import { SipModeNav } from "@/components/sip-mode-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SipCharts } from "@/features/investment/sip-charts";
 import { SipSplitPie } from "@/features/investment/sip-split-pie";
+import { useCountUp } from "@/hooks/use-count-up";
 import { apiPost } from "@/lib/api";
 import { formatINR, formatINRDetailed, formatINRLakhCrore, parseINRInput } from "@/lib/format";
 import {
@@ -122,60 +122,66 @@ export function SipCalculator() {
   const hasStepUp = summary != null && Number(summary.annual_step_up_rate) > 0;
   const hasDips = summary != null && Number(summary.total_dip_invested) > 0;
   const presetActive = (years: number) => Math.round(tenureNum) === years;
+  const animatedMaturity = useCountUp(summary ? Number(summary.maturity_value) : null);
 
   return (
     <div className="space-y-8">
       <SipModeNav mode={mode} onModeChange={handleModeChange} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        <Card className="border-border bg-card shadow-sm">
+        <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle>{t.sipDetails}</CardTitle>
             <CardDescription>{t[MODE_DESC_KEYS[mode]] as string}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="monthly">{t.monthlyInvestment}</Label>
-              <Input
-                id="monthly"
-                inputMode="numeric"
-                value={monthlyInvestment}
-                onChange={(e) => setMonthlyInvestment(e.target.value)}
-                placeholder={t.monthlyInvestmentPlaceholder}
-              />
-              {monthlyNum > 0 && (
-                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                  {formatINRLakhCrore(monthlyNum, language)}
-                  <span className="font-normal text-muted-foreground"> · {formatINR(monthlyNum)}</span>
-                </p>
-              )}
-            </div>
+            <NumberSliderField
+              id="monthly"
+              label={t.monthlyInvestment}
+              inputMode="numeric"
+              value={monthlyInvestment}
+              onChange={setMonthlyInvestment}
+              min={500}
+              max={500000}
+              step={500}
+              placeholder={t.monthlyInvestmentPlaceholder}
+              helper={
+                monthlyNum > 0 ? (
+                  <p className="text-xs font-medium text-primary">
+                    {formatINRLakhCrore(monthlyNum, language)}
+                    <span className="font-normal text-muted-foreground"> · {formatINR(monthlyNum)}</span>
+                  </p>
+                ) : undefined
+              }
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="return">{t.expectedReturn}</Label>
-              <Input
-                id="return"
-                inputMode="decimal"
-                value={annualReturn}
-                onChange={(e) => setAnnualReturn(e.target.value)}
-                placeholder={t.expectedReturnPlaceholder}
-              />
-              <p className="text-xs text-muted-foreground">{t.expectedReturnHint}</p>
-            </div>
+            <NumberSliderField
+              id="return"
+              label={t.expectedReturn}
+              inputMode="decimal"
+              value={annualReturn}
+              onChange={setAnnualReturn}
+              min={1}
+              max={30}
+              step={0.1}
+              placeholder={t.expectedReturnPlaceholder}
+              helper={<p className="text-xs text-muted-foreground">{t.expectedReturnHint}</p>}
+            />
 
             {isPro && (
-              <div className="space-y-3 rounded-xl border border-emerald-600/20 bg-emerald-500/5 p-4">
-                <div className="space-y-2">
-                  <Label htmlFor="step-up">{t.annualStepUp}</Label>
-                  <Input
-                    id="step-up"
-                    inputMode="decimal"
-                    value={annualStepUp}
-                    onChange={(e) => setAnnualStepUp(e.target.value)}
-                    placeholder={t.annualStepUpPlaceholder}
-                  />
-                  <p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>
-                </div>
+              <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <NumberSliderField
+                  id="step-up"
+                  label={t.annualStepUp}
+                  inputMode="decimal"
+                  value={annualStepUp}
+                  onChange={setAnnualStepUp}
+                  min={1}
+                  max={50}
+                  step={1}
+                  placeholder={t.annualStepUpPlaceholder}
+                  helper={<p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>}
+                />
               </div>
             )}
 
@@ -192,16 +198,19 @@ export function SipCalculator() {
                 </label>
 
                 {proPlusStepUpEnabled && (
-                  <div className="space-y-2 border-t border-violet-600/15 pt-3">
-                    <Label htmlFor="step-up-pro-plus">{t.annualStepUp}</Label>
-                    <Input
+                  <div className="border-t border-violet-600/15 pt-3">
+                    <NumberSliderField
                       id="step-up-pro-plus"
+                      label={t.annualStepUp}
                       inputMode="decimal"
                       value={annualStepUp}
-                      onChange={(e) => setAnnualStepUp(e.target.value)}
+                      onChange={setAnnualStepUp}
+                      min={1}
+                      max={50}
+                      step={1}
                       placeholder={t.annualStepUpPlaceholder}
+                      helper={<p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>}
                     />
-                    <p className="text-xs text-muted-foreground">{t.stepUpSipHint}</p>
                   </div>
                 )}
 
@@ -211,26 +220,31 @@ export function SipCalculator() {
                     <p className="mt-1 text-xs text-muted-foreground">{t.dipBuyingDesc}</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="dips-per-month">{t.dipsPerMonth}</Label>
-                    <Input
-                      id="dips-per-month"
-                      inputMode="decimal"
-                      value={dipsPerMonth}
-                      onChange={(e) => setDipsPerMonth(e.target.value)}
-                      placeholder={t.dipsPerMonthPlaceholder}
-                    />
-                    <p className="text-xs text-muted-foreground">{t.dipsPerMonthHint}</p>
-                  </div>
+                  <NumberSliderField
+                    id="dips-per-month"
+                    label={t.dipsPerMonth}
+                    inputMode="decimal"
+                    value={dipsPerMonth}
+                    onChange={setDipsPerMonth}
+                    min={1}
+                    max={31}
+                    step={1}
+                    placeholder={t.dipsPerMonthPlaceholder}
+                    helper={<p className="text-xs text-muted-foreground">{t.dipsPerMonthHint}</p>}
+                  />
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount-per-dip">{t.amountPerDip}</Label>
-                    <Input
+                    <NumberSliderField
                       id="amount-per-dip"
+                      label={t.amountPerDip}
                       inputMode="numeric"
                       value={amountPerDip}
-                      onChange={(e) => setAmountPerDip(e.target.value)}
+                      onChange={setAmountPerDip}
+                      min={100}
+                      max={100000}
+                      step={100}
                       placeholder={t.amountPerDipPlaceholder}
+                      helper={<></>}
                     />
                     <div className="flex flex-wrap gap-2 pt-1">
                       {DIP_AMOUNT_PRESETS.map((amount) => (
@@ -264,15 +278,18 @@ export function SipCalculator() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="tenure">{t.tenureYearsLabel}</Label>
-              <Input
+              <NumberSliderField
                 id="tenure"
+                label={t.tenureYearsLabel}
                 inputMode="decimal"
                 value={tenureYears}
-                onChange={(e) => setTenureYears(e.target.value)}
+                onChange={setTenureYears}
+                min={1}
+                max={50}
+                step={1}
                 placeholder={t.tenurePlaceholder}
+                helper={<p className="text-xs text-muted-foreground">{t.tenureHint}</p>}
               />
-              <p className="text-xs text-muted-foreground">{t.tenureHint}</p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {SIP_TENURE_PRESETS_YEARS.map((years) => (
                   <Button
@@ -280,7 +297,6 @@ export function SipCalculator() {
                     type="button"
                     size="sm"
                     variant={presetActive(years) ? "default" : "outline"}
-                    className={presetActive(years) ? "bg-emerald-600 hover:bg-emerald-500" : ""}
                     onClick={() => setTenureYears(String(years))}
                   >
                     {t.tenureYears(years)}
@@ -289,11 +305,7 @@ export function SipCalculator() {
               </div>
             </div>
 
-            <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-500"
-              onClick={calculate}
-              disabled={loading || !canCalculate}
-            >
+            <Button className="w-full" onClick={calculate} disabled={loading || !canCalculate}>
               {loading ? t.calculating : t.calculateSip}
             </Button>
 
@@ -301,36 +313,36 @@ export function SipCalculator() {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-600/25 bg-card shadow-sm dark:border-emerald-500/20 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:via-card/60 dark:to-card/60">
+        <Card className="flex flex-col border-primary/25 bg-gradient-to-br from-primary/[0.04] via-card to-card dark:from-primary/10 dark:via-card/60 dark:to-card/60">
           <CardHeader>
             <CardTitle>{t.results}</CardTitle>
             <CardDescription>{t.sipResultsDesc}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="flex flex-1 flex-col space-y-6">
             {summary ? (
-              <>
+              <div className="space-y-6 transition-[opacity,transform] duration-300 ease-(--ease-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0">
                 <div>
                   <p className="text-sm text-muted-foreground">{t.maturityValue}</p>
-                  <p className="text-4xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    {formatINRDetailed(Number(summary.maturity_value))}
+                  <p className="font-display text-4xl font-semibold tracking-tight text-primary tabular-nums">
+                    {formatINRDetailed(animatedMaturity)}
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border bg-background/40 p-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
                     <p className="text-xs text-muted-foreground">{t.totalInvested}</p>
-                    <p className="mt-1 text-lg font-medium">{formatINR(Number(summary.total_invested))}</p>
+                    <p className="mt-1 text-lg font-medium tabular-nums">{formatINR(Number(summary.total_invested))}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/40 p-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
                     <p className="text-xs text-muted-foreground">{t.estimatedReturns}</p>
-                    <p className="mt-1 text-lg font-medium">{formatINR(Number(summary.estimated_returns))}</p>
+                    <p className="mt-1 text-lg font-medium tabular-nums">{formatINR(Number(summary.estimated_returns))}</p>
                   </div>
                   {hasDips && (
-                    <div className="rounded-xl border border-border bg-background/40 p-4 sm:col-span-2">
+                    <div className="rounded-xl border border-border/60 bg-muted/40 p-4 sm:col-span-2">
                       <p className="text-xs text-muted-foreground">{t.totalDipInvested}</p>
-                      <p className="mt-1 text-lg font-medium">
+                      <p className="mt-1 text-lg font-medium tabular-nums">
                         {formatINR(Number(summary.total_dip_invested))}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 text-xs text-muted-foreground tabular-nums">
                         {t.monthlyExtraFromDips}: {formatINR(Number(summary.monthly_dip_investment))}
                         {" · "}
                         {summary.dips_per_month} × {formatINR(Number(summary.amount_per_dip))}
@@ -338,21 +350,21 @@ export function SipCalculator() {
                     </div>
                   )}
                   {hasStepUp && (
-                    <div className="rounded-xl border border-border bg-background/40 p-4 sm:col-span-2">
+                    <div className="rounded-xl border border-border/60 bg-muted/40 p-4 sm:col-span-2">
                       <p className="text-xs text-muted-foreground">{t.finalMonthlySip}</p>
-                      <p className="mt-1 text-lg font-medium">
+                      <p className="mt-1 text-lg font-medium tabular-nums">
                         {formatINR(Number(summary.final_monthly_investment))}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 text-xs text-muted-foreground tabular-nums">
                         {formatINR(Number(summary.monthly_investment))} → +{summary.annual_step_up_rate}% / year
                       </p>
                     </div>
                   )}
                 </div>
                 <SipSplitPie summary={summary} compact />
-              </>
+              </div>
             ) : (
-              <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+              <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
                 {t.emptySipResults}
               </div>
             )}
@@ -361,11 +373,13 @@ export function SipCalculator() {
       </div>
 
       {result && (
-        <SipCharts
-          yearly={result.yearly}
-          userTenureYears={result.userTenureYears}
-          projections={result.projections}
-        />
+        <div className="transition-[opacity,transform] duration-300 ease-(--ease-out) starting:translate-y-3 starting:opacity-0 motion-reduce:starting:translate-y-0">
+          <SipCharts
+            yearly={result.yearly}
+            userTenureYears={result.userTenureYears}
+            projections={result.projections}
+          />
+        </div>
       )}
     </div>
   );

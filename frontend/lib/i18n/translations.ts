@@ -190,6 +190,9 @@ const en: TranslationKeys = {
   cashFlowInvest: "Investment amount (₹)",
   cashFlowReturn: "Return amount (₹)",
   monthOffset: "Tenure (months)",
+  soundOn: "Slider sound on",
+  soundOff: "Slider sound off",
+  sliderHint: "Drag, or type an exact value",
 };
 
 const hi: TranslationKeys = {
@@ -381,6 +384,9 @@ const hi: TranslationKeys = {
   cashFlowInvest: "निवेश राशि (₹)",
   cashFlowReturn: "रिटर्न राशि (₹)",
   monthOffset: "अवधि (महीने)",
+  soundOn: "स्लाइडर ध्वनि चालू",
+  soundOff: "स्लाइडर ध्वनि बंद",
+  sliderHint: "खींचें, या सटीक मान टाइप करें",
 };
 
 const hinglish: TranslationKeys = {
@@ -572,6 +578,9 @@ const hinglish: TranslationKeys = {
   cashFlowInvest: "Investment amount (₹)",
   cashFlowReturn: "Return amount (₹)",
   monthOffset: "Tenure (months)",
+  soundOn: "Slider sound on",
+  soundOff: "Slider sound off",
+  sliderHint: "Drag, or type an exact value",
 };
 
 export const translations: Record<Language, TranslationKeys> = { en, hi, hinglish };

@@ -24,21 +24,21 @@ export type AdSlots = {
 
 export const AD_SLOTS: AdSlots = {
   leftPanel: {
-    enabled: true,
+    enabled: false,
     imageUrl: "",
     href: "",
     alt: "Your product",
     html: "",
   },
   bottomLeft: {
-    enabled: true,
+    enabled: false,
     imageUrl: "",
     href: "",
     alt: "Your ad",
     html: "",
   },
   bottomRight: {
-    enabled: true,
+    enabled: false,
     imageUrl: "",
     href: "",
     alt: "Your ad",

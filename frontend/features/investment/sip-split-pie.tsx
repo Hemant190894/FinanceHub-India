@@ -3,14 +3,12 @@
 import { useMemo } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
+import { useTheme } from "next-themes";
+
 import { useLanguage } from "@/components/providers/language-provider";
+import { getChartTheme } from "@/lib/chart-theme";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import type { SipSummary } from "@/types/investment";
-
-const COLORS = {
-  invested: "#059669",
-  returns: "#3b82f6",
-};
 
 type SipSplitPieProps = {
   summary: SipSummary;
@@ -39,13 +37,15 @@ function PieTooltip({
 
 export function SipSplitPie({ summary, compact = false }: SipSplitPieProps) {
   const { t } = useLanguage();
+  const { resolvedTheme } = useTheme();
+  const theme = getChartTheme(resolvedTheme === "dark");
 
   const splitData = useMemo(
     () => [
-      { name: t.chartInvested, value: Number(summary.total_invested), color: COLORS.invested },
-      { name: t.chartReturns, value: Number(summary.estimated_returns), color: COLORS.returns },
+      { name: t.chartInvested, value: Number(summary.total_invested), color: theme.principal },
+      { name: t.chartReturns, value: Number(summary.estimated_returns), color: theme.blue },
     ],
-    [summary, t],
+    [summary, t, theme.principal, theme.blue],
   );
 
   const chartHeight = compact ? 168 : 280;
@@ -92,11 +92,9 @@ export function SipSplitPie({ summary, compact = false }: SipSplitPieProps) {
         </ResponsiveContainer>
       </div>
       <div className="mt-1 grid grid-cols-2 gap-2 text-center text-xs">
-        <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5">
+        <div className="rounded-lg bg-primary/10 px-2 py-1.5">
           <p className="text-muted-foreground">{t.chartInvested}</p>
-          <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-            {formatINRCompact(Number(summary.total_invested))}
-          </p>
+          <p className="font-semibold text-primary">{formatINRCompact(Number(summary.total_invested))}</p>
         </div>
         <div className="rounded-lg bg-blue-500/10 px-2 py-1.5">
           <p className="text-muted-foreground">{t.chartReturns}</p>

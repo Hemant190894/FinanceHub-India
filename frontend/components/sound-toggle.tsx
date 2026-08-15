@@ -1,17 +1,17 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isSoundEnabled, setSoundEnabled, subscribeSoundEnabled } from "@/lib/sound";
 
-export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+export function SoundToggle({ className }: { className?: string }) {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
+  const enabled = useSyncExternalStore(subscribeSoundEnabled, isSoundEnabled, () => true);
 
   useEffect(() => setMounted(true), []);
 
@@ -19,29 +19,27 @@ export function ThemeToggle({ className }: { className?: string }) {
     return <div className={cn("size-8", className)} aria-hidden />;
   }
 
-  const isDark = (theme === "system" ? resolvedTheme : theme) === "dark";
-
   return (
     <Button
       type="button"
       variant="outline"
       size="icon-sm"
       className={className}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? t.themeLight : t.themeDark}
-      title={isDark ? t.themeLight : t.themeDark}
+      onClick={() => setSoundEnabled(!enabled)}
+      aria-label={enabled ? t.soundOn : t.soundOff}
+      title={enabled ? t.soundOn : t.soundOff}
     >
       <span className="relative inline-flex size-4 items-center justify-center">
-        <Sun
+        <Volume2
           className={cn(
             "absolute size-4 transition-[transform,opacity] duration-200 ease-(--ease-out) motion-reduce:transition-opacity",
-            isDark ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-75 opacity-0",
+            enabled ? "rotate-0 scale-100 opacity-100" : "-rotate-12 scale-75 opacity-0",
           )}
         />
-        <Moon
+        <VolumeX
           className={cn(
             "absolute size-4 transition-[transform,opacity] duration-200 ease-(--ease-out) motion-reduce:transition-opacity",
-            isDark ? "-rotate-90 scale-75 opacity-0" : "rotate-0 scale-100 opacity-100",
+            enabled ? "rotate-12 scale-75 opacity-0" : "rotate-0 scale-100 opacity-100",
           )}
         />
       </span>

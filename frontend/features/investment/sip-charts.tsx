@@ -21,12 +21,6 @@ import { CHART_BOTTOM_MARGIN, getChartTheme } from "@/lib/chart-theme";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import type { SipProjection, SipYearlyRow } from "@/types/investment";
 
-const COLORS = {
-  invested: "#059669",
-  returns: "#3b82f6",
-  projection: "#8b5cf6",
-};
-
 type SipChartsProps = {
   yearly: SipYearlyRow[];
   userTenureYears: number;
@@ -86,11 +80,11 @@ function buildGrowthChartData(
   return rows.sort((a, b) => a.year - b.year);
 }
 
-function lineColor(dataKey: string): string {
-  if (dataKey === "corpus") return COLORS.invested;
-  if (dataKey === "invested") return COLORS.returns;
-  if (dataKey === "projection") return COLORS.projection;
-  return COLORS.invested;
+function lineColor(dataKey: string, theme: ReturnType<typeof getChartTheme>): string {
+  if (dataKey === "corpus") return theme.principal;
+  if (dataKey === "invested") return theme.blue;
+  if (dataKey === "projection") return theme.violet;
+  return theme.principal;
 }
 
 function ChartTooltip({
@@ -137,7 +131,8 @@ function RotatedXAxis({ axisColor }: { axisColor: string }) {
 export function SipCharts({ yearly, userTenureYears, projections }: SipChartsProps) {
   const { t } = useLanguage();
   const { resolvedTheme } = useTheme();
-  const { gridColor, axisColor } = getChartTheme(resolvedTheme === "dark");
+  const theme = getChartTheme(resolvedTheme === "dark");
+  const { gridColor, axisColor } = theme;
 
   const growthData = useMemo(
     () => buildGrowthChartData(yearly, userTenureYears, projections, t.chartYear),
@@ -200,7 +195,7 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                                   ? t.chartProjection(point.projectionYear!)
                                   : String(p.name),
                                 value: Number(p.value),
-                                color: lineColor(dataKey),
+                                color: lineColor(dataKey, theme),
                               };
                             })}
                         />
@@ -212,7 +207,7 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                     type="linear"
                     dataKey="corpus"
                     name={t.maturityValue}
-                    stroke={COLORS.invested}
+                    stroke={theme.principal}
                     strokeWidth={2.5}
                     dot={{ r: 3, strokeWidth: 0 }}
                     activeDot={{ r: 5, strokeWidth: 0 }}
@@ -222,7 +217,7 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                     type="linear"
                     dataKey="invested"
                     name={t.chartInvested}
-                    stroke={COLORS.returns}
+                    stroke={theme.blue}
                     strokeWidth={2.5}
                     strokeDasharray="4 4"
                     dot={{ r: 3, strokeWidth: 0 }}
@@ -234,10 +229,10 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                       type="linear"
                       dataKey="projection"
                       name={t.chartProjectionLine}
-                      stroke={COLORS.projection}
+                      stroke={theme.violet}
                       strokeWidth={2}
                       strokeDasharray="6 4"
-                      dot={{ r: 5, strokeWidth: 0, fill: COLORS.projection }}
+                      dot={{ r: 5, strokeWidth: 0, fill: theme.violet }}
                       activeDot={{ r: 7, strokeWidth: 0 }}
                       connectNulls={false}
                     />
@@ -278,7 +273,7 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                       payload={payload?.map((p) => ({
                         name: String(p.name),
                         value: Number(p.value),
-                        color: p.dataKey === "invested" ? COLORS.invested : COLORS.returns,
+                        color: p.dataKey === "invested" ? theme.principal : theme.blue,
                       }))}
                     />
                   )}
@@ -288,14 +283,14 @@ export function SipCharts({ yearly, userTenureYears, projections }: SipChartsPro
                   dataKey="invested"
                   name={t.chartInvested}
                   stackId="sip"
-                  fill={COLORS.invested}
+                  fill={theme.principal}
                   activeBar={false}
                 />
                 <Bar
                   dataKey="gains"
                   name={t.chartReturns}
                   stackId="sip"
-                  fill={COLORS.returns}
+                  fill={theme.blue}
                   radius={[4, 4, 0, 0]}
                   activeBar={false}
                 />

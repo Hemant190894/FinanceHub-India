@@ -3,7 +3,6 @@
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { SIP_MODES, type SipMode } from "@/lib/investment/config";
-import { cn } from "@/lib/utils";
 
 const MODE_LABEL_KEYS: Record<SipMode, keyof import("@/lib/i18n/types").TranslationKeys> = {
   normal: "sipModeNormal",
@@ -31,7 +30,7 @@ export function SipModeNav({ mode, onModeChange }: SipModeNavProps) {
             type="button"
             size="sm"
             variant={active ? "default" : "outline"}
-            className={cn("rounded-full px-4", active && "bg-emerald-600 hover:bg-emerald-500")}
+            className="rounded-full px-4"
             aria-current={active ? "true" : undefined}
             onClick={() => onModeChange(item)}
           >

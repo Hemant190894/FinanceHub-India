@@ -181,4 +181,7 @@ export type TranslationKeys = {
   cashFlowInvest: string;
   cashFlowReturn: string;
   monthOffset: string;
+  soundOn: string;
+  soundOff: string;
+  sliderHint: string;
 };
