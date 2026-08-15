@@ -8,16 +8,14 @@ export type CalculatorItem = {
   id: string;
   labelKey: keyof import("@/lib/i18n/types").TranslationKeys;
   href?: string;
-  live?: boolean;
 };
 
 export const POPULAR_CALCULATORS: CalculatorItem[] = [
-  { id: "sip", labelKey: "calcSip", href: SIP_PATH, live: true },
+  { id: "sip", labelKey: "calcSip", href: SIP_PATH },
   ...CALCULATOR_REGISTRY.map((c) => ({
     id: c.id,
     labelKey: c.titleKey,
     href: calcPath(c.slug),
-    live: true,
   })),
 ];
 
@@ -26,7 +24,6 @@ function loanItem(type: LoanType): CalculatorItem {
     id: `${type}-loan-emi`,
     labelKey: LOAN_PAGE_COPY[type].catalogLabel,
     href: LOAN_EMI_PATHS[type],
-    live: true,
   };
 }
 
