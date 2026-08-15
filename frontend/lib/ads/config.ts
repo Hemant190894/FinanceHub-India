@@ -1,9 +1,11 @@
 /**
  * Edit this file to show your ads across calculator pages.
  *
- * Image ad: set imageUrl + href + alt
- * Custom HTML (AdSense etc.): set html — paste your ad unit snippet
- * Leave imageUrl/html empty to show a placeholder until you configure it.
+ * leftPanel — tall banner on the left (desktop)
+ * bottomLeft / bottomRight — two ad boxes below main content
+ *
+ * Image ad: imageUrl + href + alt
+ * Custom HTML (AdSense): html field
  */
 
 export type AdCreative = {
@@ -11,28 +13,35 @@ export type AdCreative = {
   imageUrl?: string;
   href?: string;
   alt?: string;
-  /** Paste AdSense or other ad network HTML */
   html?: string;
 };
 
 export type AdSlots = {
-  sidebarTop: AdCreative;
-  sidebarBottom: AdCreative;
+  leftPanel: AdCreative;
+  bottomLeft: AdCreative;
+  bottomRight: AdCreative;
 };
 
 export const AD_SLOTS: AdSlots = {
-  sidebarTop: {
+  leftPanel: {
     enabled: true,
     imageUrl: "",
     href: "",
     alt: "Your product",
     html: "",
   },
-  sidebarBottom: {
-    enabled: false,
+  bottomLeft: {
+    enabled: true,
     imageUrl: "",
     href: "",
-    alt: "",
+    alt: "Your ad",
+    html: "",
+  },
+  bottomRight: {
+    enabled: true,
+    imageUrl: "",
+    href: "",
+    alt: "Your ad",
     html: "",
   },
 };

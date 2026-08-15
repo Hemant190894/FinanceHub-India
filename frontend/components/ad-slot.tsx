@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils";
 type AdSlotProps = {
   slot: keyof AdSlots;
   className?: string;
+  /** panel = tall left banner; default = bottom box */
+  variant?: "default" | "panel";
 };
 
-export function AdSlot({ slot, className }: AdSlotProps) {
+export function AdSlot({ slot, className, variant = "default" }: AdSlotProps) {
   const { t } = useLanguage();
   const creative = getAdSlot(slot);
 
@@ -18,11 +20,14 @@ export function AdSlot({ slot, className }: AdSlotProps) {
 
   const hasImage = Boolean(creative.imageUrl?.trim());
   const hasHtml = Boolean(creative.html?.trim());
+  const isPanel = variant === "panel";
+
+  const placeholderMin = isPanel ? "min-h-[min(560px,72vh)]" : "min-h-[200px]";
 
   if (!hasImage && !hasHtml) {
     return (
-      <Card className={cn("border-dashed border-border bg-muted/30", className)}>
-        <CardContent className="flex min-h-[250px] flex-col items-center justify-center gap-2 p-4 text-center">
+      <Card className={cn("border-dashed border-border bg-muted/30", placeholderMin, className)}>
+        <CardContent className="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 p-4 text-center">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t.adLabel}</p>
           <p className="text-sm text-muted-foreground">{t.adPlaceholder}</p>
           <p className="text-xs text-muted-foreground/80">{t.adConfigHint}</p>
@@ -33,27 +38,29 @@ export function AdSlot({ slot, className }: AdSlotProps) {
 
   if (hasHtml) {
     return (
-      <Card className={cn("border-border bg-card", className)}>
-        <CardContent className="p-3">
+      <Card className={cn("border-border bg-card", isPanel && "min-h-[min(560px,72vh)]", className)}>
+        <CardContent className="flex h-full flex-col p-3">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t.adLabel}</p>
-          <div className="ad-slot-html" dangerouslySetInnerHTML={{ __html: creative.html! }} />
+          <div className="ad-slot-html flex-1" dangerouslySetInnerHTML={{ __html: creative.html! }} />
         </CardContent>
       </Card>
     );
   }
 
   const image = (
-    // ponytail: plain img so any ad banner URL works without next/image remote config
     <img
       src={creative.imageUrl!}
       alt={creative.alt || t.adLabel}
-      className="h-auto w-full rounded-lg object-cover"
+      className={cn(
+        "w-full rounded-lg object-cover",
+        isPanel ? "min-h-[min(520px,70vh)] object-cover" : "h-auto",
+      )}
       loading="lazy"
     />
   );
 
   return (
-    <Card className={cn("border-border bg-card", className)}>
+    <Card className={cn("border-border bg-card", isPanel && "min-h-[min(560px,72vh)]", className)}>
       <CardContent className="p-3">
         <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t.adLabel}</p>
         {creative.href?.trim() ? (
