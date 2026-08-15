@@ -17,23 +17,23 @@ function AdPlaceholder({ variant }: { variant: "default" | "panel" }) {
   const isPanel = variant === "panel";
 
   return (
-  <Card
-    className={cn(
-      "w-full border-2 border-dashed border-muted-foreground/25 bg-muted/40 shadow-none ring-0",
-      isPanel ? "min-h-[min(560px,72vh)]" : "min-h-[200px]",
-    )}
-  >
-    <CardContent
+    <Card
       className={cn(
-        "flex flex-col items-center justify-center gap-2 p-6 text-center",
-        isPanel ? "min-h-[min(520px,70vh)]" : "min-h-[180px]",
+        "flex w-full flex-col border-2 border-dashed border-muted-foreground/25 bg-muted/40 shadow-none ring-0",
+        isPanel ? "h-full min-h-[240px]" : "min-h-[200px]",
       )}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{t.adLabel}</p>
-      <p className="text-base font-medium text-foreground/80">{t.adPlaceholder}</p>
-      <p className="max-w-[220px] text-xs leading-relaxed text-muted-foreground">{t.adConfigHint}</p>
-    </CardContent>
-  </Card>
+      <CardContent
+        className={cn(
+          "flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center",
+          isPanel ? "min-h-0" : "min-h-[180px]",
+        )}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{t.adLabel}</p>
+        <p className="text-base font-medium text-foreground/80">{t.adPlaceholder}</p>
+        <p className="max-w-[220px] text-xs leading-relaxed text-muted-foreground">{t.adConfigHint}</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -49,7 +49,7 @@ export function AdSlot({ slot, className, variant = "default" }: AdSlotProps) {
 
   if (!hasImage && !hasHtml) {
     return (
-      <div className={cn("w-full", className)}>
+      <div className={cn("w-full", isPanel && "h-full", className)}>
         <AdPlaceholder variant={variant} />
       </div>
     );
@@ -59,16 +59,16 @@ export function AdSlot({ slot, className, variant = "default" }: AdSlotProps) {
     return (
       <Card
         className={cn(
-          "w-full border border-border bg-card shadow-none",
-          isPanel && "min-h-[min(560px,72vh)]",
+          "flex w-full flex-col border border-border bg-card shadow-none",
+          isPanel && "h-full min-h-[240px]",
           className,
         )}
       >
-        <CardContent className={cn("p-3", isPanel && "min-h-[min(520px,70vh)]")}>
+        <CardContent className={cn("flex flex-1 flex-col p-3", isPanel && "min-h-0")}>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             {t.adLabel}
           </p>
-          <div className="ad-slot-html" dangerouslySetInnerHTML={{ __html: creative.html! }} />
+          <div className="ad-slot-html flex-1" dangerouslySetInnerHTML={{ __html: creative.html! }} />
         </CardContent>
       </Card>
     );
@@ -80,7 +80,7 @@ export function AdSlot({ slot, className, variant = "default" }: AdSlotProps) {
       alt={creative.alt || t.adLabel}
       className={cn(
         "w-full rounded-lg object-cover",
-        isPanel ? "min-h-[min(480px,65vh)]" : "h-auto",
+        isPanel ? "h-full min-h-[200px] object-cover" : "h-auto",
       )}
       loading="lazy"
     />
@@ -89,22 +89,24 @@ export function AdSlot({ slot, className, variant = "default" }: AdSlotProps) {
   return (
     <Card
       className={cn(
-        "w-full border border-border bg-card shadow-none",
-        isPanel && "min-h-[min(560px,72vh)]",
+        "flex w-full flex-col border border-border bg-card shadow-none",
+        isPanel && "h-full min-h-[240px]",
         className,
       )}
     >
-      <CardContent className="p-3">
+      <CardContent className={cn("flex flex-1 flex-col p-3", isPanel && "min-h-0")}>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           {t.adLabel}
         </p>
-        {creative.href?.trim() ? (
-          <a href={creative.href} target="_blank" rel="noopener noreferrer sponsored" className="block">
-            {image}
-          </a>
-        ) : (
-          image
-        )}
+        <div className={cn(isPanel && "flex-1")}>
+          {creative.href?.trim() ? (
+            <a href={creative.href} target="_blank" rel="noopener noreferrer sponsored" className="block h-full">
+              {image}
+            </a>
+          ) : (
+            image
+          )}
+        </div>
       </CardContent>
     </Card>
   );
