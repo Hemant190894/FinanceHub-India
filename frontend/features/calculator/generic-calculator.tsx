@@ -1,14 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 
 import { NumberSliderField } from "@/components/number-slider-field";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { GenericResultPie } from "@/features/calculator/generic-result-pie";
 import { useCountUp } from "@/hooks/use-count-up";
 import { apiPost } from "@/lib/api";
+import { getChartTheme } from "@/lib/chart-theme";
 import { CALCULATOR_BY_SLUG } from "@/lib/calculators/registry";
 import { isSelectField } from "@/lib/calculators/registry";
 import type { TranslationKeys } from "@/lib/i18n/types";
@@ -34,6 +37,7 @@ function parseFieldValue(
 export function GenericCalculator({ slug }: GenericCalculatorProps) {
   const config = CALCULATOR_BY_SLUG[slug];
   const { t } = useLanguage();
+  const { resolvedTheme } = useTheme();
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries((config?.fields ?? []).map((f) => [f.id, f.defaultValue])),
   );
@@ -43,14 +47,14 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
 
   const parsed = useMemo(() => {
     const out: Record<string, string | number> = {};
-    for (const field of config.fields) {
+    for (const field of config?.fields ?? []) {
       out[field.id] = parseFieldValue(field, values[field.id] ?? field.defaultValue);
     }
     return out;
-  }, [config.fields, values]);
+  }, [config?.fields, values]);
 
   const canCalculate = useMemo(() => {
-    for (const field of config.fields) {
+    for (const field of config?.fields ?? []) {
       if (isSelectField(field)) continue;
       const val = parsed[field.id];
       if (typeof val !== "number" || !Number.isFinite(val)) return false;
@@ -58,9 +62,7 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
       if ((field.id === "tenure_years" || field.id === "tenure_months") && val <= 0) return false;
     }
     return true;
-  }, [config.fields, parsed]);
-
-  if (!config) return null;
+  }, [config?.fields, parsed]);
 
   async function calculate() {
     if (!canCalculate) return;
@@ -87,11 +89,33 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
 
   const summary = result?.summary ?? null;
   const regime = values.regime ?? "new";
-  const showDeductions = config.id === "income-tax" && regime === "old";
-  const primaryResult = config.results[0];
+  const showDeductions = config?.id === "income-tax" && regime === "old";
+  const primaryResult = config?.results[0];
   const animatedPrimary = useCountUp(
     summary && primaryResult ? Number(summary[primaryResult.key] ?? 0) : null,
   );
+
+  const colorFor = useMemo(() => {
+    const chartTheme = getChartTheme(resolvedTheme === "dark");
+    return {
+      principal: chartTheme.principal,
+      interest: chartTheme.interest,
+      blue: chartTheme.blue,
+      violet: chartTheme.violet,
+    } as const;
+  }, [resolvedTheme]);
+
+  const chartSegments = useMemo(() => {
+    if (!summary || !config?.chart) return [];
+    const derived = config.chart.derive?.(summary, parsed) ?? {};
+    return config.chart.segments.map((segment) => ({
+      name: t[segment.labelKey] as string,
+      value: segment.key in derived ? derived[segment.key] : Number(summary[segment.key] ?? 0),
+      color: colorFor[segment.color],
+    }));
+  }, [config, summary, parsed, t, colorFor]);
+
+  if (!config) return null;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
@@ -171,6 +195,7 @@ export function GenericCalculator({ slug }: GenericCalculatorProps) {
                   </div>
                 ))}
               </div>
+              {chartSegments.length > 0 && <GenericResultPie segments={chartSegments} compact />}
             </div>
           ) : (
             <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">

@@ -25,6 +25,24 @@ export type CalcResultKey = {
   format: "inr" | "percent" | "number";
 };
 
+export type CalcChartColor = "principal" | "interest" | "blue" | "violet";
+
+export type CalcChartSegmentSpec = {
+  /** Field name to read — from the derived map first, then the API summary. */
+  key: string;
+  labelKey: LabelKey;
+  color: CalcChartColor;
+};
+
+export type CalcChartSpec = {
+  segments: CalcChartSegmentSpec[];
+  /** Computes extra amounts (e.g. take-home income) not returned directly by the API. */
+  derive?: (
+    summary: Record<string, string>,
+    parsed: Record<string, string | number>,
+  ) => Record<string, number>;
+};
+
 export type CalculatorRegistryEntry = {
   id: string;
   slug: string;
@@ -33,6 +51,7 @@ export type CalculatorRegistryEntry = {
   fields: Array<CalcField | CalcSelectField>;
   results: CalcResultKey[];
   buildPayload: (values: Record<string, string | number>) => Record<string, unknown>;
+  chart?: CalcChartSpec;
 };
 
 function isSelectField(field: CalcField | CalcSelectField): field is CalcSelectField {
@@ -81,6 +100,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       annual_return_rate: v.annual_return_rate,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "total_invested", labelKey: "totalInvested", color: "principal" },
+        { key: "estimated_returns", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "swp",
@@ -132,6 +157,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       annual_return_rate: v.annual_return_rate,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "remaining_corpus", labelKey: "remainingCorpus", color: "principal" },
+        { key: "total_withdrawn", labelKey: "totalWithdrawn", color: "interest" },
+      ],
+    },
   },
   {
     id: "mf-returns",
@@ -173,6 +204,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       final_value: v.final_value,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "initial_value", labelKey: "initialValue", color: "principal" },
+        { key: "absolute_return", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "ssy",
@@ -206,6 +243,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       yearly_deposit: v.yearly_deposit,
       annual_return_rate: v.annual_return_rate,
     }),
+    chart: {
+      segments: [
+        { key: "total_invested", labelKey: "totalInvested", color: "principal" },
+        { key: "estimated_returns", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "income-tax",
@@ -251,6 +294,15 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       regime: v.regime,
       deductions: v.regime === "old" ? v.deductions : 0,
     }),
+    chart: {
+      derive: (summary, parsed) => ({
+        take_home: Math.max(0, Number(parsed.gross_annual_income ?? 0) - Number(summary.total_tax ?? 0)),
+      }),
+      segments: [
+        { key: "take_home", labelKey: "takeHomeIncome", color: "principal" },
+        { key: "total_tax", labelKey: "totalTax", color: "interest" },
+      ],
+    },
   },
   {
     id: "ppf",
@@ -293,6 +345,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       annual_return_rate: v.annual_return_rate,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "total_invested", labelKey: "totalInvested", color: "principal" },
+        { key: "estimated_returns", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "epf",
@@ -354,6 +412,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       annual_return_rate: v.annual_return_rate,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "total_contributed", labelKey: "totalContribution", color: "principal" },
+        { key: "estimated_returns", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "fd",
@@ -405,6 +469,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       tenure_years: Math.round(Number(v.tenure_years)),
       compounding_per_year: Math.round(Number(v.compounding_per_year)),
     }),
+    chart: {
+      segments: [
+        { key: "principal", labelKey: "totalInvested", color: "principal" },
+        { key: "interest_earned", labelKey: "interestEarned", color: "blue" },
+      ],
+    },
   },
   {
     id: "rd",
@@ -447,6 +517,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       annual_return_rate: v.annual_return_rate,
       tenure_years: Math.round(Number(v.tenure_years)),
     }),
+    chart: {
+      segments: [
+        { key: "total_deposited", labelKey: "totalDeposited", color: "principal" },
+        { key: "estimated_returns", labelKey: "estimatedReturns", color: "blue" },
+      ],
+    },
   },
   {
     id: "gst",
@@ -490,6 +566,12 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
       gst_rate: v.gst_rate,
       mode: v.mode,
     }),
+    chart: {
+      segments: [
+        { key: "base_amount", labelKey: "baseAmount", color: "principal" },
+        { key: "gst_amount", labelKey: "gstAmountLabel", color: "interest" },
+      ],
+    },
   },
   {
     id: "xirr",
@@ -529,6 +611,16 @@ export const CALCULATOR_REGISTRY: CalculatorRegistryEntry[] = [
         { amount: Number(v.return_amount), month: Math.round(Number(v.tenure_months)) },
       ],
     }),
+    chart: {
+      derive: (_summary, parsed) => ({
+        invested: Number(parsed.invest_amount ?? 0),
+        gain: Math.max(0, Number(parsed.return_amount ?? 0) - Number(parsed.invest_amount ?? 0)),
+      }),
+      segments: [
+        { key: "invested", labelKey: "cashFlowInvest", color: "principal" },
+        { key: "gain", labelKey: "netGain", color: "blue" },
+      ],
+    },
   },
 ];
 

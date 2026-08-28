@@ -193,6 +193,10 @@ const en: TranslationKeys = {
   soundOn: "Slider sound on",
   soundOff: "Slider sound off",
   sliderHint: "Drag, or type an exact value",
+  chartResultSplit: "Amount breakdown",
+  chartResultSplitDesc: "How your total splits into its parts.",
+  takeHomeIncome: "Take-home income",
+  netGain: "Net gain",
 };
 
 const hi: TranslationKeys = {
@@ -387,6 +391,10 @@ const hi: TranslationKeys = {
   soundOn: "स्लाइडर ध्वनि चालू",
   soundOff: "स्लाइडर ध्वनि बंद",
   sliderHint: "खींचें, या सटीक मान टाइप करें",
+  chartResultSplit: "राशि का विभाजन",
+  chartResultSplitDesc: "आपकी कुल राशि किन हिस्सों में बंटी है।",
+  takeHomeIncome: "हाथ में आने वाली आय",
+  netGain: "शुद्ध लाभ",
 };
 
 const hinglish: TranslationKeys = {
@@ -581,6 +589,10 @@ const hinglish: TranslationKeys = {
   soundOn: "Slider sound on",
   soundOff: "Slider sound off",
   sliderHint: "Drag, or type an exact value",
+  chartResultSplit: "Amount breakdown",
+  chartResultSplitDesc: "Total kis hisse mein banta hai.",
+  takeHomeIncome: "Take-home income",
+  netGain: "Net gain",
 };
 
 export const translations: Record<Language, TranslationKeys> = { en, hi, hinglish };

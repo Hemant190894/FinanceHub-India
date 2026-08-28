@@ -184,4 +184,8 @@ export type TranslationKeys = {
   soundOn: string;
   soundOff: string;
   sliderHint: string;
+  chartResultSplit: string;
+  chartResultSplitDesc: string;
+  takeHomeIncome: string;
+  netGain: string;
 };
